@@ -6,7 +6,7 @@ load_dotenv()
 
 # Server Configuration
 SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
-SERVER_PORT = int(os.getenv("SERVER_PORT", 8000))
+SERVER_PORT = int(os.getenv("SERVER_PORT", 9099))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 # Ollama Configuration (local on same machine)

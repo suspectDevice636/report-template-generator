@@ -16,30 +16,30 @@ Transform your findings into professional, client-ready pentest reports without 
 ## Workflow
 
 ```
-┌─────────────────────────────────────┐
-│ During Pentest on Your Laptop       │
-│                                     │
-│ 1. Find vulnerability               │
-│ 2. Open Report Generator            │
-│ 3. Type: "SQLI in /api/users, POST" │
-│ 4. LLM generates professional text  │
-│ 5. Review and add to report         │
-│ 6. Export DOCX when done            │
-└─────────────────────────────────────┘
-         │
-         ▼ (via WiFi)
 ┌──────────────────────────────────────┐
-│ Mac Mini #2 (192.168.50.11:8000)     │
+│ Pentest Client/VM                    │
+│                                      │
+│ 1. Find vulnerability                │
+│ 2. Open Report Generator Web UI      │
+│ 3. Type: "SQLI in /api/users, POST"  │
+│ 4. LLM generates professional text   │
+│ 5. Review and add to report          │
+│ 6. Export DOCX when done             │
+└──────────────────────────┬───────────┘
+                           │ (network)
+                           ▼
+┌──────────────────────────────────────┐
+│ Report Generator Server (9099)       │
 ├──────────────────────────────────────┤
 │ ├─ Web UI                            │
 │ ├─ FastAPI Server                    │
-│ ├─ Ollama (11434)                    │
+│ ├─ Ollama Integration                │
 │ └─ DOCX Generation                   │
 └────────┬─────────────────────────────┘
-         │ (via EdgeRouter)
+         │ (network)
          ▼
 ┌──────────────────────────────────────┐
-│ Synology NAS (192.168.50.50)         │
+│ NAS / Network Storage                │
 │ Anonymized report storage            │
 └──────────────────────────────────────┘
 ```
@@ -48,10 +48,10 @@ Transform your findings into professional, client-ready pentest reports without 
 
 ### Prerequisites
 
-- **Mac Mini #2** with 32GB RAM
+- **Server with sufficient resources** - At least 8GB+ RAM to run Ollama comfortably
 - **Python 3.10+**
-- **Ollama** running locally (port 11434)
-- **NAS** accessible via network mount
+- **Ollama** running locally or accessible on the network (default port 11434)
+- **NAS or network storage** - Optional, for storing anonymized reports
 
 ### Setup
 
@@ -80,7 +80,7 @@ mkdir -p templates/uploads reports/generated static
 python main.py
 ```
 
-Server available at: **`http://192.168.50.11:8000`**
+Server available at: **`http://localhost:9099`** (or your server's IP:9099)
 
 ## Configuration
 
@@ -88,29 +88,34 @@ Server available at: **`http://192.168.50.11:8000`**
 
 ```bash
 # Server
-SERVER_PORT=8000
+SERVER_PORT=9099
 DEBUG=false
 
-# Ollama (local)
+# Ollama Configuration
+# If Ollama runs on the same machine:
 OLLAMA_HOST=http://localhost:11434
+
+# If Ollama runs on another machine:
+# OLLAMA_HOST=http://192.168.x.x:11434
+
 OLLAMA_MODEL=mistral
 OLLAMA_TIMEOUT=90
 
-# NAS Storage - UPDATE THESE
-NAS_IP=192.168.50.50              # Your NAS IP
+# NAS/Network Storage Configuration (optional)
+NAS_IP=192.168.x.x                # Your NAS/storage IP
 NAS_USERNAME=admin
 NAS_PASSWORD=your_password
 NAS_MOUNT_PATH=/mnt/pentest-reports  # Ensure this exists and is mounted
 ```
 
-### NAS Mount Setup
+### NAS Mount Setup (Optional)
 
 ```bash
 # Create mount directory
 mkdir -p /mnt/pentest-reports
 
-# Mount NAS (adjust credentials)
-sudo mount -t cifs //192.168.50.50/findings /mnt/pentest-reports \
+# Mount NAS (replace 192.168.x.x with your NAS IP)
+sudo mount -t cifs //192.168.x.x/findings /mnt/pentest-reports \
   -o username=admin,password=YOUR_PASSWORD,uid=501,gid=20
 
 # Verify
@@ -119,7 +124,16 @@ ls -la /mnt/pentest-reports
 # Make permanent (add to /etc/fstab or create auto-mount script)
 ```
 
+**Note:** If you don't have a NAS, you can use local storage or skip this step. The app will still work without it.
+
 ## Usage
+
+### Access the Web UI
+
+```bash
+# Open in browser (replace SERVER_IP with your server's IP or localhost)
+http://SERVER_IP:9099
+```
 
 ### 1. Upload DOCX Template
 
@@ -161,19 +175,21 @@ View NAS-stored reports (anonymized metadata)
 
 ## API Endpoints
 
+Replace `SERVER_IP` with your server's IP address or `localhost` if running locally.
+
 ### Upload Template
 ```bash
 POST /upload-template
 Content-Type: multipart/form-data
 
-curl -F "file=@template.docx" http://192.168.50.11:8000/upload-template
+curl -F "file=@template.docx" http://SERVER_IP:9099/upload-template
 ```
 
 ### List Templates
 ```bash
 GET /templates
 
-curl http://192.168.50.11:8000/templates
+curl http://SERVER_IP:9099/templates
 ```
 
 ### Generate Finding Content
@@ -333,22 +349,29 @@ Open: `http://192.168.50.11:8000/docs` for interactive API docs
 
 ## License
 
-Private project.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributors
+
+- **suspectDevice** (susdev636@gmail.com) - Author & Maintainer
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for more details.
 
 ---
 
 **Version:** 1.0.0  
-**Status:** Ready for use  
-**Last Updated:** 2026-04-11
+**Status:** Production Ready  
+**Last Updated:** 2026-04-11  
+**License:** MIT
 
 ---
 
-## Notes for Your Lab
+## Key Features for Pentesters
 
-- **Network:** Access via WiFi from pentest VM to Mac Mini #2
-- **Ollama:** Runs locally on Mac Mini #2, no remote calls needed
-- **NAS:** Reachable from Mac Mini #2 via EdgeRouter
-- **Client data:** Never leaves your lab network or offline VM
-- **Reports:** Stored anonymized on NAS for record-keeping
+- **Network:** Access the web UI from any device on your network
+- **Ollama:** Runs locally (or on dedicated LLM server), no cloud API calls
+- **Storage:** Optional NAS integration for anonymized report records
+- **Offline:** All processing stays within your network - client data never leaves
+- **Reports:** Generated reports are ready-to-send DOCX files with professional formatting
 
 Ready to generate professional pentest reports offline! 🔒

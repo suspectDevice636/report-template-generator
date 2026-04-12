@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Template Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background: #1e1e1e;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #0052a3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .template-list {
+            list-style: none;
+        }
+
+        .template-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .findings-list {
+            list-style: none;
+        }
+
+        .finding-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #28a745;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .finding-item h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .finding-item small {
+            color: #666;
+        }
+
+        .finding-item button {
+            background: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .finding-item button:hover {
+            background: #c82333;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .spinner {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📋 Report Template Generator</h1>
+        <p>Offline pentest report generation with LLM-assisted content</p>
+    </header>
+
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('templates')">Templates</button>
+            <button class="tab" onclick="switchTab('generate')">Generate Report</button>
+            <button class="tab" onclick="switchTab('storage')">Storage</button>
+        </div>
+
+        <!-- Templates Tab -->
+        <div id="templates" class="tab-content active">
+            <div class="section">
+                <h2>Template Management</h2>
+                <div class="form-group">
+                    <label>Upload DOCX Template</label>
+                    <input type="file" id="templateFile" accept=".docx" />
+                    <button onclick="uploadTemplate()">Upload Template</button>
+                    <div id="uploadStatus" class="status"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Available Templates</h2>
+                <div id="templatesList">
+                    <p>Loading templates...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Report Tab -->
+        <div id="generate" class="tab-content">
+            <div class="section">
+                <h2>Report Configuration</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Report Name (e.g., "Acme Corp - Web App Test")</label>
+                        <input type="text" id="reportName" placeholder="Enter report name" />
+                    </div>
+                    <div class="form-group">
+                        <label>Select Template</label>
+                        <select id="selectedTemplate">
+                            <option value="">Loading templates...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Add Findings</h2>
+                <div class="form-group">
+                    <label>Finding Description (e.g., "SQLI in /api/users POST parameter, authenticated, can extract user data")</label>
+                    <textarea id="findingInput" placeholder="Describe the vulnerability you found..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Vulnerability Type (optional)</label>
+                    <select id="vulnType">
+                        <option value="">Select or leave blank</option>
+                        <option value="sql_injection">SQL Injection</option>
+                        <option value="xss">Cross-Site Scripting (XSS)</option>
+                        <option value="authentication">Authentication Bypass</option>
+                        <option value="authorization">Authorization Issue</option>
+                        <option value="csrf">CSRF</option>
+                        <option value="business_logic">Business Logic Flaw</option>
+                        <option value="api">API Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button onclick="addFinding()">Add Finding <span id="addSpinner" class="spinner"></span></button>
+                <div id="addFindingStatus" class="status"></div>
+            </div>
+
+            <div class="section">
+                <h2>Findings to Include</h2>
+                <div id="findingsList">
+                    <p style="color: #999;">No findings added yet</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <button onclick="generateReport()" style="width: 100%; padding: 15px; font-size: 16px;">Generate Report <span id="generateSpinner" class="spinner"></span></button>
+                <div id="generateStatus" class="status"></div>
+            </div>
+        </div>
+
+        <!-- Storage Tab -->
+        <div id="storage" class="tab-content">
+            <div class="section">
+                <h2>Storage Information</h2>
+                <button onclick="refreshStorageInfo()">Refresh Storage Info</button>
+                <div id="storageInfo" style="margin-top: 20px;"></div>
+            </div>
+
+            <div class="section">
+                <h2>Stored Reports</h2>
+                <button onclick="refreshReportsList()">Refresh Reports List</button>
+                <div id="reportsList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Refresh data
+            if (tabName === 'templates') loadTemplates();
+            if (tabName === 'storage') {
+                refreshStorageInfo();
+                refreshReportsList();
+            }
+        }
+
+        // Load templates on page load
+        window.onload = function() {
+            loadTemplates();
+            loadTemplatesForSelect();
+        };
+
+        // API calls
+        async function uploadTemplate() {
+            const fileInput = document.getElementById('templateFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('uploadStatus', 'error', 'Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload-template', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('uploadStatus', 'success', 'Template uploaded successfully!');
+                    fileInput.value = '';
+                    loadTemplates();
+                    loadTemplatesForSelect();
+                } else {
+                    showStatus('uploadStatus', 'error', data.detail || 'Upload failed');
+                }
+            } catch (error) {
+                showStatus('uploadStatus', 'error', 'Upload failed: ' + error.message);
+            }
+        }
+
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/templates');
+                const data = await response.json();
+
+                if (response.ok && data.templates.length > 0) {
+                    let html = '<ul class="template-list">';
+                    data.templates.forEach(template => {
+                        html += `<li class="template-item"><strong>${template.name}</strong><br><small>${template.filename}</small></li>`;
+                    });
+                    html += '</ul>';
+                    document.getElementById('templatesList').innerHTML = html;
+                } else {
+                    document.getElementById('templatesList').innerHTML = '<p style="color: #999;">No templates uploaded yet. Upload a DOCX template above.</p>';
+                }
+            } catch (error) {
+                document.getElementById('templatesList').innerHTML = '<p style="color: red;">Error loading templates</p>';
+            }
+        }
+
+        async function loadTemplatesForSelect() {
+            try {
+                const response = await fetch('/templates');
+                const data = await response.json();
+
+                if (response.ok && data.templates.length > 0) {
+                    let options = '<option value="">Select a template</option>';
+                    data.templates.forEach(template => {
+                        options += `<option value="${template.name}">${template.name}</option>`;
+                    });
+                    document.getElementById('selectedTemplate').innerHTML = options;
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        let addedFindings = [];
+
+        async function addFinding() {
+            const description = document.getElementById('findingInput').value;
+            const vulnType = document.getElementById('vulnType').value;
+            const template = document.getElementById('selectedTemplate').value;
+
+            if (!description) {
+                showStatus('addFindingStatus', 'error', 'Please enter a finding description');
+                return;
+            }
+
+            if (!template) {
+                showStatus('addFindingStatus', 'error', 'Please select a template');
+                return;
+            }
+
+            showStatus('addFindingStatus', 'info', 'Generating finding content with LLM...');
+            document.getElementById('addSpinner').style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/generate-finding', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        finding_description: description,
+                        vulnerability_type: vulnType,
+                        template_name: template
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('addSpinner').style.display = 'none';
+
+                if (response.ok) {
+                    addedFindings.push(data.finding);
+                    displayFinding(data.finding);
+                    document.getElementById('findingInput').value = '';
+                    showStatus('addFindingStatus', 'success', 'Finding added successfully!');
+                } else {
+                    showStatus('addFindingStatus', 'error', data.detail || 'Failed to generate finding');
+                }
+            } catch (error) {
+                document.getElementById('addSpinner').style.display = 'none';
+                showStatus('addFindingStatus', 'error', 'Error: ' + error.message);
+            }
+        }
+
+        function displayFinding(finding) {
+            const list = document.getElementById('findingsList');
+
+            // Remove the "No findings" message if this is the first finding
+            if (addedFindings.length === 1) {
+                list.innerHTML = '';
+            }
+
+            const html = `
+                <div class="finding-item">
+                    <h4>${finding.title}</h4>
+                    <small><strong>Type:</strong> ${finding.type || 'N/A'}</small>
+                    <p style="margin-top: 10px; margin-bottom: 10px;">${finding.description_impact.substring(0, 150)}...</p>
+                    <button onclick="removeFinding(${addedFindings.length - 1})">Remove</button>
+                </div>
+            `;
+
+            list.innerHTML += html;
+        }
+
+        function removeFinding(index) {
+            addedFindings.splice(index, 1);
+            if (addedFindings.length === 0) {
+                document.getElementById('findingsList').innerHTML = '<p style="color: #999;">No findings added yet</p>';
+            } else {
+                displayFindings();
+            }
+        }
+
+        function displayFindings() {
+            const list = document.getElementById('findingsList');
+            list.innerHTML = '';
+
+            addedFindings.forEach((finding, index) => {
+                const html = `
+                    <div class="finding-item">
+                        <h4>${finding.title}</h4>
+                        <small><strong>Type:</strong> ${finding.type || 'N/A'}</small>
+                        <p style="margin-top: 10px; margin-bottom: 10px;">${finding.description_impact.substring(0, 150)}...</p>
+                        <button onclick="removeFinding(${index})">Remove</button>
+                    </div>
+                `;
+                list.innerHTML += html;
+            });
+        }
+
+        async function generateReport() {
+            const reportName = document.getElementById('reportName').value;
+            const template = document.getElementById('selectedTemplate').value;
+
+            if (!reportName) {
+                showStatus('generateStatus', 'error', 'Please enter a report name');
+                return;
+            }
+
+            if (!template) {
+                showStatus('generateStatus', 'error', 'Please select a template');
+                return;
+            }
+
+            if (addedFindings.length === 0) {
+                showStatus('generateStatus', 'error', 'Please add at least one finding');
+                return;
+            }
+
+            showStatus('generateStatus', 'info', 'Generating report...');
+            document.getElementById('generateSpinner').style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/generate-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        template_name: template,
+                        findings: addedFindings.map(f => ({
+                            finding_description: f.description_impact,
+                            vulnerability_type: f.type,
+                            template_name: template
+                        })),
+                        report_name: reportName
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('generateSpinner').style.display = 'none';
+
+                if (response.ok) {
+                    showStatus('generateStatus', 'success', `Report generated! <a href="${data.download_url}" download="${data.report_name}">Download</a>`);
+                    // Reset form
+                    addedFindings = [];
+                    document.getElementById('findingsList').innerHTML = '<p style="color: #999;">No findings added yet</p>';
+                    document.getElementById('reportName').value = '';
+                } else {
+                    showStatus('generateStatus', 'error', data.detail || 'Failed to generate report');
+                }
+            } catch (error) {
+                document.getElementById('generateSpinner').style.display = 'none';
+                showStatus('generateStatus', 'error', 'Error: ' + error.message);
+            }
+        }
+
+        async function refreshStorageInfo() {
+            try {
+                const response = await fetch('/storage-info');
+                const data = await response.json();
+
+                if (response.ok) {
+                    const storage = data.storage;
+                    let html = `
+                        <div style="padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                            <p><strong>Status:</strong> ${storage.status}</p>
+                            <p><strong>NAS IP:</strong> ${storage.nas_ip}</p>
+                            <p><strong>Mount Path:</strong> ${storage.mount_path}</p>
+                            <p><strong>Reports Stored:</strong> ${storage.reports_count || 0}</p>
+                    `;
+
+                    if (storage.note) {
+                        html += `<p style="color: #d9534f;"><strong>Note:</strong> ${storage.note}</p>`;
+                    }
+
+                    html += '</div>';
+                    document.getElementById('storageInfo').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('storageInfo').innerHTML = '<p style="color: red;">Error loading storage info</p>';
+            }
+        }
+
+        async function refreshReportsList() {
+            try {
+                const response = await fetch('/reports');
+                const data = await response.json();
+
+                if (response.ok && data.reports.length > 0) {
+                    let html = '<ul class="findings-list">';
+                    data.reports.forEach(report => {
+                        html += `
+                            <li class="finding-item">
+                                <strong>${report.report_name}</strong>
+                                <br><small>Findings: ${report.findings_count} | Date: ${new Date(report.timestamp).toLocaleString()}</small>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                    document.getElementById('reportsList').innerHTML = html;
+                } else {
+                    document.getElementById('reportsList').innerHTML = '<p style="color: #999;">No reports stored yet</p>';
+                }
+            } catch (error) {
+                document.getElementById('reportsList').innerHTML = '<p style="color: red;">Error loading reports</p>';
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.innerHTML = message;
+        }
+    </script>
+</body>
+</html>

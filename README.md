@@ -86,21 +86,29 @@ Server available at: **`http://localhost:9099`** (or your server's IP:9099)
 
 ## Docker Deployment (Recommended)
 
-### Quick Start with Docker Compose
+### Two Options: Docker Ollama vs Local Ollama
+
+**Option A: Use Docker to manage both app and Ollama (all-in-one)**
+- Best for: Clean isolated environment
+- Requirements: Docker, docker-compose, ~13GB disk space for Ollama model
+
+**Option B: Use Docker for app, local Ollama already running (recommended if you have Ollama)**
+- Best for: You already have Ollama running
+- Requirements: Docker, existing local Ollama instance
+- Simpler, reuses existing setup
+
+### Quick Start - Option B (Local Ollama)
 
 ```bash
 # Clone and setup
 git clone https://github.com/YOUR_USERNAME/report-template-generator.git
 cd report-template-generator
 
-# Configure environment (optional, edit docker-compose.yml)
-# Update NAS_IP, NAS_USERNAME, NAS_PASSWORD if using NAS storage
+# docker-compose.yml already configured for local Ollama (no changes needed)
+# It will connect to http://host.docker.internal:11434
 
-# Start both app and Ollama
+# Start only the app container
 docker-compose up -d
-
-# Pull Ollama model (first time only)
-docker exec ollama-server ollama pull mistral
 
 # Check status
 docker-compose ps
@@ -108,6 +116,28 @@ docker-compose logs -f report-generator
 ```
 
 Access the app at: **`http://localhost:9099`**
+
+### Alternative - Option A (Docker Ollama)
+
+If you want Docker to manage Ollama too, edit `docker-compose.yml`:
+
+```yaml
+# 1. Uncomment this environment variable:
+- OLLAMA_HOST=http://ollama:11434
+
+# 2. Comment out this one:
+# - OLLAMA_HOST=http://host.docker.internal:11434
+
+# 3. Uncomment the entire 'ollama' service section at the bottom
+
+# 4. Uncomment the 'ollama-data' volume section
+```
+
+Then:
+```bash
+docker-compose up -d
+docker exec ollama-server ollama pull mistral
+```
 
 ### Docker Commands
 
@@ -140,11 +170,12 @@ docker-compose up -d
 
 ### Docker Notes
 
-- **Volumes persist data** between restarts (templates, reports, models)
-- **Ollama downloads models once** and caches them (~4-13GB depending on model)
+- **Two Ollama options:** Choose between Docker-managed Ollama or connect to existing local instance
+- **Local Ollama connection:** Uses `host.docker.internal:11434` to reach your machine's Ollama
+- **Volumes persist data** between restarts (templates, reports, models if using Docker Ollama)
 - **NAS mount:** Uncomment the volume in docker-compose.yml and ensure it's mounted on the host
-- **Health checks:** Both services have built-in health checks
-- **Network:** Services communicate via internal `pentest-lab` network
+- **Health checks:** Services have built-in health checks
+- **Network:** Services communicate via `pentest-lab` bridge network
 
 ---
 

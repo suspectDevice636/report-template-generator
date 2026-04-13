@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Report Template Generator
+  report-generator:
+    build: .
+    container_name: report-generator
+    ports:
+      - "9099:9099"
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=9099
+      - DEBUG=false
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=mistral
+      - OLLAMA_TIMEOUT=90
+      - NAS_IP=192.168.x.x
+      - NAS_USERNAME=admin
+      - NAS_PASSWORD=your_password
+      - NAS_MOUNT_PATH=/mnt/pentest-reports
+      - LOG_LEVEL=INFO
+    volumes:
+      # Templates uploaded by users
+      - ./templates/uploads:/app/templates/uploads
+      # Generated reports
+      - ./reports/generated:/app/reports/generated
+      # Optional: NAS mount (uncomment and configure if using)
+      # - /mnt/pentest-reports:/mnt/pentest-reports
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - pentest-lab
+    restart: unless-stopped
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    volumes:
+      # Persist Ollama models
+      - ollama-data:/root/.ollama
+    networks:
+      - pentest-lab
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  pentest-lab:
+    driver: bridge
+
+volumes:
+  ollama-data:
+    driver: local

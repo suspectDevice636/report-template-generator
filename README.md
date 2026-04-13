@@ -82,6 +82,72 @@ python main.py
 
 Server available at: **`http://localhost:9099`** (or your server's IP:9099)
 
+---
+
+## Docker Deployment (Recommended)
+
+### Quick Start with Docker Compose
+
+```bash
+# Clone and setup
+git clone https://github.com/YOUR_USERNAME/report-template-generator.git
+cd report-template-generator
+
+# Configure environment (optional, edit docker-compose.yml)
+# Update NAS_IP, NAS_USERNAME, NAS_PASSWORD if using NAS storage
+
+# Start both app and Ollama
+docker-compose up -d
+
+# Pull Ollama model (first time only)
+docker exec ollama-server ollama pull mistral
+
+# Check status
+docker-compose ps
+docker-compose logs -f report-generator
+```
+
+Access the app at: **`http://localhost:9099`**
+
+### Docker Commands
+
+```bash
+# Stop containers
+docker-compose down
+
+# View logs
+docker-compose logs -f report-generator
+docker-compose logs -f ollama-server
+
+# Restart
+docker-compose restart
+
+# Remove everything (careful!)
+docker-compose down -v
+```
+
+### With Custom .env File
+
+```bash
+# Create .env file
+cp .env.example .env
+nano .env
+
+# Update docker-compose.yml to use .env
+# Then start normally
+docker-compose up -d
+```
+
+### Docker Notes
+
+- **Volumes persist data** between restarts (templates, reports, models)
+- **Ollama downloads models once** and caches them (~4-13GB depending on model)
+- **NAS mount:** Uncomment the volume in docker-compose.yml and ensure it's mounted on the host
+- **Health checks:** Both services have built-in health checks
+- **Network:** Services communicate via internal `pentest-lab` network
+
+---
+
 ## Configuration
 
 ### .env File

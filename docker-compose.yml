@@ -41,8 +41,6 @@ services:
     #   ollama:
     #     condition: service_healthy
 
-    # Option B: No dependencies if using local Ollama (default)
-
     networks:
       - pentest-lab
     restart: unless-stopped
@@ -74,8 +72,3 @@ services:
 networks:
   pentest-lab:
     driver: bridge
-
-volumes:
-  # Uncomment if using Docker Ollama
-  # ollama-data:
-  #   driver: local

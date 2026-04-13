@@ -142,6 +142,9 @@ docker exec ollama-server ollama pull mistral
 ### Docker Commands
 
 ```bash
+# Start containers
+docker-compose up -d
+
 # Stop containers
 docker-compose down
 
@@ -155,6 +158,26 @@ docker-compose restart
 # Remove everything (careful!)
 docker-compose down -v
 ```
+
+### Troubleshooting Docker
+
+**Error: "volumes must be a mapping"**
+- This is a YAML syntax error in docker-compose.yml
+- Make sure you don't have `depends_on: []` (empty list)
+- It should be either removed or commented out with `#`
+- See the comments in docker-compose.yml for the correct syntax
+
+**Port 9099 already in use**
+```bash
+# Change the port in docker-compose.yml:
+ports:
+  - "9999:9099"  # Use 9999 instead
+```
+
+**Can't connect to local Ollama from Docker**
+- Make sure Ollama is running: `ollama serve`
+- Docker uses `host.docker.internal:11434` to reach your machine
+- On Linux, you may need to use your machine's IP instead: `192.168.x.x:11434`
 
 ### With Custom .env File
 

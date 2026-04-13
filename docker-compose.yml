@@ -41,8 +41,7 @@ services:
     #   ollama:
     #     condition: service_healthy
 
-    # Option B: No dependencies if using local Ollama - COMMENT OUT IF USING DOCKER OLLAMA
-    depends_on: []
+    # Option B: No dependencies if using local Ollama (default)
 
     networks:
       - pentest-lab

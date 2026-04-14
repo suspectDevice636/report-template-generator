@@ -13,7 +13,7 @@ Runs on Mac Mini #2 with local Ollama integration.
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -97,14 +97,19 @@ class ReportRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    """Root endpoint with API info."""
-    return {
-        "status": "running",
-        "name": APP_NAME,
-        "version": APP_VERSION,
-        "description": APP_DESCRIPTION,
-        "docs": "/docs",
-    }
+    """Root endpoint - serve web UI."""
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        with open(index_path, "r") as f:
+            return HTMLResponse(content=f.read())
+    else:
+        return {
+            "status": "running",
+            "name": APP_NAME,
+            "version": APP_VERSION,
+            "description": APP_DESCRIPTION,
+            "docs": "/docs",
+        }
 
 
 @app.get("/health")
